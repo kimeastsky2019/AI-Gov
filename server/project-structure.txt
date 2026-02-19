@@ -1,0 +1,17 @@
+server/
+├── .env.example          # Environment variables template
+├── .gitignore            # Git ignore file
+├── README.md             # Project documentation
+├── package.json          # Dependencies & scripts
+├── package-lock.json     # Locked dependencies
+├── tsconfig.json         # TypeScript configuration
+├── src/
+│   ├── index.ts          # Main entry point
+│   ├── config/           # Configuration files (empty - ready for setup)
+│   ├── middleware/       # Express middleware (empty - ready for setup)
+│   ├── models/           # Database models (empty - ready for setup)
+│   ├── routes/           # API routes (empty - ready for setup)
+│   ├── services/         # Business logic (empty - ready for setup)
+│   └── utils/            # Utility functions (empty - ready for setup)
+├── data/                 # Database and uploads directory
+└── node_modules/         # Dependencies (170+ packages installed)
