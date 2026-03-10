@@ -12,11 +12,23 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  ChevronDown,
   X,
   User,
   Brain,
   Sparkles,
-  Globe
+  Globe,
+  Building2,
+  Database,
+  BarChart3,
+  Scale,
+  Eye,
+  Lock,
+  UserCheck,
+  Heart,
+  BookOpen,
+  Gavel,
+  Radar
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ROUTE_PATHS } from "@/lib/index";
@@ -38,19 +50,75 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+interface NavItem {
+  title: string;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface NavGroup {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  items: NavItem[];
+}
+
 const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
   const location = useLocation();
   const { t } = useI18n();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    governance: true,
+    techReview: true,
+    regulation: true,
+  });
 
-  const navItems = useMemo(() => [
-    { title: t('nav.dashboard'), path: ROUTE_PATHS.DASHBOARD, icon: LayoutDashboard },
-    { title: t('nav.riskAssessment'), path: ROUTE_PATHS.RISK_ASSESSMENT, icon: ShieldCheck },
-    { title: t('nav.compliance'), path: ROUTE_PATHS.COMPLIANCE, icon: ClipboardCheck },
-    { title: t('nav.aiServices'), path: ROUTE_PATHS.AI_SERVICES, icon: Cpu },
-    { title: t('nav.reports'), path: ROUTE_PATHS.REPORTS, icon: FileText },
-    { title: t('nav.aiIntelligence'), path: ROUTE_PATHS.AI_INTELLIGENCE, icon: Brain },
-    { title: t('nav.sllmStudio'), path: ROUTE_PATHS.SLLM_STUDIO, icon: Sparkles },
-  ], [t]);
+  const toggleGroup = (key: string) => {
+    setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const navGroups: Record<string, NavGroup> = useMemo(() => ({
+    governance: {
+      label: t('nav.pillar.governance'),
+      icon: ShieldCheck,
+      color: "text-blue-400",
+      items: [
+        { title: t('nav.governance.dashboard'), path: ROUTE_PATHS.GOVERNANCE_DASHBOARD, icon: LayoutDashboard },
+        { title: t('nav.governance.riskManagement'), path: ROUTE_PATHS.RISK_MANAGEMENT, icon: ShieldCheck },
+        { title: t('nav.governance.organization'), path: ROUTE_PATHS.ORGANIZATION, icon: Building2 },
+        { title: t('nav.governance.serviceManagement'), path: ROUTE_PATHS.SERVICE_MANAGEMENT, icon: Cpu },
+        { title: t('nav.governance.reports'), path: ROUTE_PATHS.GOVERNANCE_REPORTS, icon: FileText },
+      ],
+    },
+    techReview: {
+      label: t('nav.pillar.techReview'),
+      icon: Database,
+      color: "text-emerald-400",
+      items: [
+        { title: t('nav.tech.dataQuality'), path: ROUTE_PATHS.DATA_QUALITY, icon: Database },
+        { title: t('nav.tech.modelPerformance'), path: ROUTE_PATHS.MODEL_PERFORMANCE, icon: BarChart3 },
+        { title: t('nav.tech.fairness'), path: ROUTE_PATHS.FAIRNESS, icon: Scale },
+        { title: t('nav.tech.explainability'), path: ROUTE_PATHS.EXPLAINABILITY, icon: Eye },
+        { title: t('nav.tech.security'), path: ROUTE_PATHS.SECURITY, icon: Lock },
+        { title: t('nav.tech.sllmStudio'), path: ROUTE_PATHS.SLLM_STUDIO, icon: Sparkles },
+      ],
+    },
+    regulation: {
+      label: t('nav.pillar.regulation'),
+      icon: Gavel,
+      color: "text-amber-400",
+      items: [
+        { title: t('nav.reg.privacy'), path: ROUTE_PATHS.PRIVACY, icon: UserCheck },
+        { title: t('nav.reg.consumerProtection'), path: ROUTE_PATHS.CONSUMER_PROTECTION, icon: Heart },
+        { title: t('nav.reg.ethics'), path: ROUTE_PATHS.ETHICS, icon: BookOpen },
+        { title: t('nav.reg.compliance'), path: ROUTE_PATHS.COMPLIANCE_MGMT, icon: ClipboardCheck },
+        { title: t('nav.reg.intelligence'), path: ROUTE_PATHS.AI_INTELLIGENCE, icon: Radar },
+      ],
+    },
+  }), [t]);
+
+  const isGroupActive = (group: NavGroup) => {
+    return group.items.some(item => location.pathname === item.path);
+  };
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
@@ -58,33 +126,82 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
         <img src="/images/logo-gng.png" alt="GnG International" className="h-10 object-contain" />
       </div>
 
-      <ScrollArea className="flex-1 px-4">
-        <nav className="space-y-1.5">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-200 group relative",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                    : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
-                )
-              }
-            >
-              <item.icon className="w-5 h-5 transition-colors" />
-              <span className="text-sm">{item.title}</span>
-              {location.pathname === item.path && (
-                <motion.div
-                  layoutId="active-nav-indicator"
-                  className="absolute left-0 w-1 h-6 bg-primary rounded-r-full"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-            </NavLink>
-          ))}
+      <ScrollArea className="flex-1 px-3">
+        <nav className="space-y-1">
+          {Object.entries(navGroups).map(([key, group]) => {
+            const isOpen = openGroups[key];
+            const isActive = isGroupActive(group);
+
+            return (
+              <div key={key} className="mb-1">
+                {/* Group Header */}
+                <button
+                  onClick={() => toggleGroup(key)}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all duration-200 text-left group",
+                    isActive
+                      ? "bg-sidebar-accent/70"
+                      : "hover:bg-sidebar-accent/40"
+                  )}
+                >
+                  <group.icon className={cn("w-4.5 h-4.5 flex-shrink-0", group.color)} />
+                  <span className={cn(
+                    "text-[13px] font-semibold flex-1 tracking-tight",
+                    isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                  )}>
+                    {group.label}
+                  </span>
+                  <motion.div
+                    animate={{ rotate: isOpen ? 0 : -90 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/60" />
+                  </motion.div>
+                </button>
+
+                {/* Group Items */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="ml-3 pl-3 border-l border-sidebar-border/50 mt-0.5 mb-1 space-y-0.5">
+                        {group.items.map((item) => (
+                          <NavLink
+                            key={item.path}
+                            to={item.path}
+                            onClick={onClose}
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-2.5 px-3 py-2 rounded-md transition-all duration-200 group/item relative",
+                                isActive
+                                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                                  : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
+                              )
+                            }
+                          >
+                            <item.icon className="w-4 h-4 transition-colors flex-shrink-0" />
+                            <span className="text-[13px]">{item.title}</span>
+                            {location.pathname === item.path && (
+                              <motion.div
+                                layoutId="active-nav-indicator"
+                                className="absolute left-0 w-0.5 h-5 bg-primary rounded-r-full"
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                              />
+                            )}
+                          </NavLink>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </nav>
       </ScrollArea>
 
@@ -208,7 +325,6 @@ export function Layout({ children }: LayoutProps) {
         {/* Footer */}
         <footer className="border-t border-border py-8 px-4 lg:px-8 bg-muted/30">
           <div className="max-w-[1600px] mx-auto space-y-6">
-            {/* Top: Brand + Links */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <img src="/images/logo-gng.png" alt="GnG International" className="h-7 object-contain" />
@@ -223,7 +339,6 @@ export function Layout({ children }: LayoutProps) {
 
             <Separator />
 
-            {/* Bottom: Company Info + Copyright */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">

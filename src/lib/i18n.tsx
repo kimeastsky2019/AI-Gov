@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { governanceKo, governanceEn, governanceZh } from './i18n-governance';
+import { techReviewKo, techReviewEn, techReviewZh } from './i18n-tech-review';
+import { regulationKo, regulationEn, regulationZh } from './i18n-regulation';
 
 export type Lang = 'ko' | 'en' | 'zh';
 
@@ -63,6 +66,30 @@ const ko: TranslationDict = {
   'nav.profile': '프로필',
   'nav.settings': '설정',
   'nav.language': '언어',
+
+  // ── 3대 필라 네비게이션 ──
+  'nav.pillar.governance': 'AI 거버넌스',
+  'nav.pillar.techReview': 'AI 기술 검토',
+  'nav.pillar.regulation': 'AI관련 규제 검토',
+
+  'nav.governance.dashboard': '거버넌스 대시보드',
+  'nav.governance.riskManagement': 'AI 위험 관리',
+  'nav.governance.organization': '조직·인력 관리',
+  'nav.governance.serviceManagement': 'AI 서비스 관리',
+  'nav.governance.reports': '보고서·문서화',
+
+  'nav.tech.dataQuality': '데이터 품질 검증',
+  'nav.tech.modelPerformance': '모델 성능 평가',
+  'nav.tech.fairness': '공정성·편향 검증',
+  'nav.tech.explainability': '설명가능성 평가',
+  'nav.tech.security': '보안 검증',
+  'nav.tech.sllmStudio': 'sLLM 스튜디오',
+
+  'nav.reg.privacy': '개인정보보호 점검',
+  'nav.reg.consumerProtection': '소비자 보호 점검',
+  'nav.reg.ethics': 'AI 윤리 점검',
+  'nav.reg.compliance': '규제 준수 관리',
+  'nav.reg.intelligence': 'AI 인텔리전스',
 
   // ── Home ──
   'home.hero.title': 'AI 거버넌스의 새로운 기준',
@@ -1041,6 +1068,30 @@ const en: TranslationDict = {
   'nav.settings': 'Settings',
   'nav.language': 'Language',
 
+  // ── 3-Pillar Navigation ──
+  'nav.pillar.governance': 'AI Governance',
+  'nav.pillar.techReview': 'AI Technical Review',
+  'nav.pillar.regulation': 'AI Regulatory Review',
+
+  'nav.governance.dashboard': 'Governance Dashboard',
+  'nav.governance.riskManagement': 'AI Risk Management',
+  'nav.governance.organization': 'Organization & Personnel',
+  'nav.governance.serviceManagement': 'AI Service Management',
+  'nav.governance.reports': 'Reports & Documentation',
+
+  'nav.tech.dataQuality': 'Data Quality Review',
+  'nav.tech.modelPerformance': 'Model Performance',
+  'nav.tech.fairness': 'Fairness & Bias Review',
+  'nav.tech.explainability': 'Explainability Assessment',
+  'nav.tech.security': 'Security Review',
+  'nav.tech.sllmStudio': 'sLLM Studio',
+
+  'nav.reg.privacy': 'Privacy Review',
+  'nav.reg.consumerProtection': 'Consumer Protection',
+  'nav.reg.ethics': 'AI Ethics Review',
+  'nav.reg.compliance': 'Compliance Management',
+  'nav.reg.intelligence': 'AI Intelligence',
+
   // ── Home ──
   'home.hero.title': 'A New Standard for AI Governance',
   'home.hero.subtitle': 'An integrated governance platform for secure and trustworthy AI systems',
@@ -2018,6 +2069,30 @@ const zh: TranslationDict = {
   'nav.settings': '设置',
   'nav.language': '语言',
 
+  // ── 三大支柱导航 ──
+  'nav.pillar.governance': 'AI治理',
+  'nav.pillar.techReview': 'AI技术审查',
+  'nav.pillar.regulation': 'AI法规审查',
+
+  'nav.governance.dashboard': '治理仪表盘',
+  'nav.governance.riskManagement': 'AI风险管理',
+  'nav.governance.organization': '组织与人员管理',
+  'nav.governance.serviceManagement': 'AI服务管理',
+  'nav.governance.reports': '报告与文档',
+
+  'nav.tech.dataQuality': '数据质量验证',
+  'nav.tech.modelPerformance': '模型性能评估',
+  'nav.tech.fairness': '公平性与偏差检验',
+  'nav.tech.explainability': '可解释性评估',
+  'nav.tech.security': '安全性验证',
+  'nav.tech.sllmStudio': 'sLLM工作室',
+
+  'nav.reg.privacy': '个人信息保护检查',
+  'nav.reg.consumerProtection': '消费者保护检查',
+  'nav.reg.ethics': 'AI伦理检查',
+  'nav.reg.compliance': '法规合规管理',
+  'nav.reg.intelligence': 'AI智能',
+
   // ── Home ──
   'home.hero.title': 'AI治理新标准',
   'home.hero.subtitle': '面向安全可信AI系统的综合治理平台',
@@ -2945,7 +3020,11 @@ const zh: TranslationDict = {
   'data.dashboard.inProgressAssessment': '进行中的风险评估',
 };
 
-const translations: Record<Lang, TranslationDict> = { ko, en, zh };
+const translations: Record<Lang, TranslationDict> = {
+  ko: { ...ko, ...governanceKo, ...techReviewKo, ...regulationKo },
+  en: { ...en, ...governanceEn, ...techReviewEn, ...regulationEn },
+  zh: { ...zh, ...governanceZh, ...techReviewZh, ...regulationZh },
+};
 
 // ═══════════════════════════════════════════════════
 // CONTEXT

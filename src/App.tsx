@@ -7,18 +7,32 @@ import { ROUTE_PATHS } from "@/lib/index";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { I18nProvider } from "@/lib/i18n";
 
-// Import Pages
+// Import Pages - Public
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
-import Dashboard from "@/pages/Dashboard";
-import RiskAssessmentPage from "@/pages/RiskAssessment";
-import Compliance from "@/pages/Compliance";
-import AIServices from "@/pages/AIServices";
-import Reports from "@/pages/Reports";
-import AIIntelligence from "@/pages/AIIntelligence";
-import RiskAssessmentWizard from "@/pages/RiskAssessmentWizard";
+
+// Import Pages - AI 거버넌스 필라
+import GovernanceDashboard from "@/pages/GovernanceDashboard";
+import RiskManagement from "@/pages/RiskManagement";
+import Organization from "@/pages/Organization";
+import AIServiceManagement from "@/pages/AIServiceManagement";
+import GovernanceReports from "@/pages/GovernanceReports";
+
+// Import Pages - AI 기술 검토 필라
+import DataQualityReview from "@/pages/DataQualityReview";
+import ModelPerformance from "@/pages/ModelPerformance";
+import FairnessReview from "@/pages/FairnessReview";
+import ExplainabilityReview from "@/pages/ExplainabilityReview";
+import SecurityReview from "@/pages/SecurityReview";
 import SLLMStudio from "@/pages/SLLMStudio";
+
+// Import Pages - AI관련 규제 검토 필라
+import PrivacyReview from "@/pages/PrivacyReview";
+import ConsumerProtection from "@/pages/ConsumerProtection";
+import EthicsReview from "@/pages/EthicsReview";
+import ComplianceManagement from "@/pages/ComplianceManagement";
+import AIIntelligence from "@/pages/AIIntelligence";
 
 // Initialize React Query Client
 const queryClient = new QueryClient({
@@ -55,41 +69,85 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * AppRoutes - 인증 상태 기반 라우팅
+ * AppRoutes - 3대 필라 기반 라우팅
  */
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* ── Public Routes ── */}
       <Route path={ROUTE_PATHS.HOME} element={<Home />} />
       <Route path={ROUTE_PATHS.LOGIN} element={<Login />} />
       <Route path={ROUTE_PATHS.REGISTER} element={<Register />} />
 
-      {/* Protected Routes - 로그인 필요 */}
-      <Route path={ROUTE_PATHS.DASHBOARD} element={
-        <ProtectedRoute><Dashboard /></ProtectedRoute>
+      {/* ══════════════════════════════════════════════
+          AI 거버넌스 필라
+         ══════════════════════════════════════════════ */}
+      <Route path={ROUTE_PATHS.GOVERNANCE_DASHBOARD} element={
+        <ProtectedRoute><GovernanceDashboard /></ProtectedRoute>
       } />
-      <Route path={ROUTE_PATHS.RISK_ASSESSMENT} element={
-        <ProtectedRoute><RiskAssessmentPage /></ProtectedRoute>
+      <Route path={ROUTE_PATHS.RISK_MANAGEMENT} element={
+        <ProtectedRoute><RiskManagement /></ProtectedRoute>
       } />
-      <Route path={ROUTE_PATHS.COMPLIANCE} element={
-        <ProtectedRoute><Compliance /></ProtectedRoute>
+      <Route path={ROUTE_PATHS.ORGANIZATION} element={
+        <ProtectedRoute><Organization /></ProtectedRoute>
       } />
-      <Route path={ROUTE_PATHS.AI_SERVICES} element={
-        <ProtectedRoute><AIServices /></ProtectedRoute>
+      <Route path={ROUTE_PATHS.SERVICE_MANAGEMENT} element={
+        <ProtectedRoute><AIServiceManagement /></ProtectedRoute>
       } />
-      <Route path={ROUTE_PATHS.REPORTS} element={
-        <ProtectedRoute><Reports /></ProtectedRoute>
+      <Route path={ROUTE_PATHS.GOVERNANCE_REPORTS} element={
+        <ProtectedRoute><GovernanceReports /></ProtectedRoute>
       } />
-      <Route path="/ai-intelligence" element={
-        <ProtectedRoute><AIIntelligence /></ProtectedRoute>
+
+      {/* ══════════════════════════════════════════════
+          AI 기술 검토 필라
+         ══════════════════════════════════════════════ */}
+      <Route path={ROUTE_PATHS.DATA_QUALITY} element={
+        <ProtectedRoute><DataQualityReview /></ProtectedRoute>
       } />
-      <Route path="/risk-assessment/wizard" element={
-        <ProtectedRoute><RiskAssessmentWizard /></ProtectedRoute>
+      <Route path={ROUTE_PATHS.MODEL_PERFORMANCE} element={
+        <ProtectedRoute><ModelPerformance /></ProtectedRoute>
       } />
-      <Route path="/sllm-studio" element={
+      <Route path={ROUTE_PATHS.FAIRNESS} element={
+        <ProtectedRoute><FairnessReview /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.EXPLAINABILITY} element={
+        <ProtectedRoute><ExplainabilityReview /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.SECURITY} element={
+        <ProtectedRoute><SecurityReview /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.SLLM_STUDIO} element={
         <ProtectedRoute><SLLMStudio /></ProtectedRoute>
       } />
+
+      {/* ══════════════════════════════════════════════
+          AI관련 규제 검토 필라
+         ══════════════════════════════════════════════ */}
+      <Route path={ROUTE_PATHS.PRIVACY} element={
+        <ProtectedRoute><PrivacyReview /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.CONSUMER_PROTECTION} element={
+        <ProtectedRoute><ConsumerProtection /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.ETHICS} element={
+        <ProtectedRoute><EthicsReview /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.COMPLIANCE_MGMT} element={
+        <ProtectedRoute><ComplianceManagement /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.AI_INTELLIGENCE} element={
+        <ProtectedRoute><AIIntelligence /></ProtectedRoute>
+      } />
+
+      {/* ── Legacy URL 리다이렉트 (기존 북마크 호환) ── */}
+      <Route path="/dashboard" element={<Navigate to={ROUTE_PATHS.GOVERNANCE_DASHBOARD} replace />} />
+      <Route path="/risk-assessment" element={<Navigate to={ROUTE_PATHS.RISK_MANAGEMENT} replace />} />
+      <Route path="/risk-assessment/wizard" element={<Navigate to={ROUTE_PATHS.RISK_MANAGEMENT} replace />} />
+      <Route path="/compliance" element={<Navigate to={ROUTE_PATHS.COMPLIANCE_MGMT} replace />} />
+      <Route path="/ai-services" element={<Navigate to={ROUTE_PATHS.SERVICE_MANAGEMENT} replace />} />
+      <Route path="/reports" element={<Navigate to={ROUTE_PATHS.GOVERNANCE_REPORTS} replace />} />
+      <Route path="/ai-intelligence" element={<Navigate to={ROUTE_PATHS.AI_INTELLIGENCE} replace />} />
+      <Route path="/sllm-studio" element={<Navigate to={ROUTE_PATHS.SLLM_STUDIO} replace />} />
 
       {/* Fallback 404 */}
       <Route

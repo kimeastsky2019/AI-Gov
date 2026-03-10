@@ -2,13 +2,35 @@ export const ROUTE_PATHS = {
   HOME: "/",
   LOGIN: "/login",
   REGISTER: "/register",
+
+  // ── AI 거버넌스 필라 ──
+  GOVERNANCE_DASHBOARD: "/governance/dashboard",
+  RISK_MANAGEMENT: "/governance/risk-management",
+  ORGANIZATION: "/governance/organization",
+  SERVICE_MANAGEMENT: "/governance/services",
+  GOVERNANCE_REPORTS: "/governance/reports",
+
+  // ── AI 기술 검토 필라 ──
+  DATA_QUALITY: "/tech-review/data-quality",
+  MODEL_PERFORMANCE: "/tech-review/model-performance",
+  FAIRNESS: "/tech-review/fairness",
+  EXPLAINABILITY: "/tech-review/explainability",
+  SECURITY: "/tech-review/security",
+  SLLM_STUDIO: "/tech-review/sllm-studio",
+
+  // ── AI관련 규제 검토 필라 ──
+  PRIVACY: "/regulation/privacy",
+  CONSUMER_PROTECTION: "/regulation/consumer-protection",
+  ETHICS: "/regulation/ethics",
+  COMPLIANCE_MGMT: "/regulation/compliance",
+  AI_INTELLIGENCE: "/regulation/intelligence",
+
+  // ── Legacy (리다이렉트용) ──
   DASHBOARD: "/dashboard",
   RISK_ASSESSMENT: "/risk-assessment",
   COMPLIANCE: "/compliance",
   AI_SERVICES: "/ai-services",
   REPORTS: "/reports",
-  AI_INTELLIGENCE: "/ai-intelligence",
-  SLLM_STUDIO: "/sllm-studio",
 } as const;
 
 export interface RiskAssessment {
