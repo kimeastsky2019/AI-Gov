@@ -27,6 +27,10 @@ import ExplainabilityReview from "@/pages/ExplainabilityReview";
 import SecurityReview from "@/pages/SecurityReview";
 import SLLMStudio from "@/pages/SLLMStudio";
 
+// Import Pages - 플로우
+import GovernanceFlowStepPage from "@/pages/flow/GovernanceFlowStepPage";
+import DataQualityFlowStepPage from "@/pages/flow/DataQualityFlowStepPage";
+
 // Import Pages - AI관련 규제 검토 필라
 import PrivacyReview from "@/pages/PrivacyReview";
 import ConsumerProtection from "@/pages/ConsumerProtection";
@@ -96,6 +100,12 @@ function AppRoutes() {
       } />
       <Route path={ROUTE_PATHS.GOVERNANCE_REPORTS} element={
         <ProtectedRoute><GovernanceReports /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.GOVERNANCE_FLOW} element={
+        <ProtectedRoute><GovernanceFlowStepPage /></ProtectedRoute>
+      } />
+      <Route path={ROUTE_PATHS.DQ_FLOW} element={
+        <ProtectedRoute><DataQualityFlowStepPage /></ProtectedRoute>
       } />
 
       {/* ══════════════════════════════════════════════

@@ -119,10 +119,10 @@ const GovernanceDashboard: React.FC = () => {
         <motion.div variants={staggerItem}>
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-              {t('governance.dashboard.title') || 'AI 거버넌스 대시보드'}
+              {t('gov.dashboard.title') || 'AI 거버넌스 대시보드'}
             </h1>
             <p className="text-muted-foreground text-lg">
-              {t('governance.dashboard.subtitle') || '조직의 AI 거버넌스 현황을 한눈에 파악하고 규제 준수를 관리하세요'}
+              {t('gov.dashboard.subtitle') || '조직의 AI 거버넌스 현황을 한눈에 파악하고 규제 준수를 관리하세요'}
             </p>
           </div>
         </motion.div>
@@ -136,7 +136,7 @@ const GovernanceDashboard: React.FC = () => {
         >
           <motion.div variants={staggerItem}>
             <MetricCard
-              title={t('governance.metric.totalServices') || '총 AI 서비스 수'}
+              title={t('gov.metric.totalServices') || '총 AI 서비스 수'}
               value={25}
               change={"+3"}
               trend="up"
@@ -144,7 +144,7 @@ const GovernanceDashboard: React.FC = () => {
           </motion.div>
           <motion.div variants={staggerItem}>
             <MetricCard
-              title={t('governance.metric.highRisk') || '고위험 서비스'}
+              title={t('gov.metric.highRisk') || '고위험 서비스'}
               value={8}
               change={"-1"}
               trend="down"
@@ -152,7 +152,7 @@ const GovernanceDashboard: React.FC = () => {
           </motion.div>
           <motion.div variants={staggerItem}>
             <MetricCard
-              title={t('governance.metric.compliance') || '규제 준수율'}
+              title={t('gov.metric.compliance') || '규제 준수율'}
               value="88%"
               change={"+5%"}
               trend="up"
@@ -160,7 +160,7 @@ const GovernanceDashboard: React.FC = () => {
           </motion.div>
           <motion.div variants={staggerItem}>
             <MetricCard
-              title={t('governance.metric.completed') || '점검 완료율'}
+              title={t('gov.metric.completed') || '점검 완료율'}
               value="82%"
               change={"+2%"}
               trend="up"
@@ -174,7 +174,7 @@ const GovernanceDashboard: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-blue-500" />
-                {t('governance.riskDistribution.title') || '위험 등급 분포'}
+                {t('gov.riskDistribution.title') || '위험 등급 분포'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -222,7 +222,7 @@ const GovernanceDashboard: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-green-500" />
-                  {t('governance.compliance.title') || '규제 준수 현황'}
+                  {t('gov.compliance.title') || '규제 준수 현황'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -261,7 +261,7 @@ const GovernanceDashboard: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-amber-500" />
-                  {t('governance.quickActions.title') || '빠른 작업'}
+                  {t('gov.quickActions.title') || '빠른 작업'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -333,7 +333,7 @@ const GovernanceDashboard: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-sky-500" />
-                {t('governance.recent.title') || '최근 활동'}
+                {t('gov.recent.title') || '최근 활동'}
               </CardTitle>
             </CardHeader>
             <CardContent>

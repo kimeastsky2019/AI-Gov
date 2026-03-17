@@ -25,6 +25,12 @@ export const ROUTE_PATHS = {
   COMPLIANCE_MGMT: "/regulation/compliance",
   AI_INTELLIGENCE: "/regulation/intelligence",
 
+  // ── AI 거버넌스 플로우 ──
+  GOVERNANCE_FLOW: "/governance/flow/:stepId",
+
+  // ── 데이터 품질 검증 플로우 ──
+  DQ_FLOW: "/tech-review/dq-flow/:stepId",
+
   // ── Legacy (리다이렉트용) ──
   DASHBOARD: "/dashboard",
   RISK_ASSESSMENT: "/risk-assessment",

@@ -14,7 +14,7 @@ import {
   ChevronRight, Eye, Wand2, BarChart3, Clock, CheckCircle2,
   Shield, AlertTriangle, Lock, Cpu, Activity, ArrowRight,
   Building2, Factory, Landmark, ShieldCheck, Workflow, Layers, Server,
-  TrendingUp,
+  TrendingUp, GitMerge, BookOpen, Lightbulb, Target, CircleDot,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,575 @@ import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 
 type SectorId = 'smart' | 'renew' | 'bank' | 'insur';
+
+// =============================================
+// 온톨로지 학습 탭
+// =============================================
+function OntologyTrainingTab() {
+  const [trainingStatus, setTrainingStatus] = React.useState<Record<string, 'idle' | 'extracting' | 'training' | 'completed'>>({});
+  const [trainingProgress, setTrainingProgress] = React.useState<Record<string, number>>({});
+  const [loadedData, setLoadedData] = React.useState<Record<string, boolean>>({});
+  const [loadingData, setLoadingData] = React.useState<Record<string, boolean>>({});
+  // 모델 관리
+  const [trainedModels, setTrainedModels] = React.useState([
+    { id: "mdl-001", name: "GovAI-sLLM-v2.3", size: "1.2 GB", accuracy: 94.2, date: "2026-03-15", status: "active" as const, sources: ["dq", "mp", "fr"], epochs: 30, loss: 0.042 },
+    { id: "mdl-002", name: "GovAI-sLLM-v2.2", size: "1.1 GB", accuracy: 91.8, date: "2026-03-01", status: "archived" as const, sources: ["dq", "mp"], epochs: 25, loss: 0.058 },
+  ]);
+  const [globalTraining, setGlobalTraining] = React.useState<'idle' | 'loading' | 'training' | 'completed'>('idle');
+  const [globalProgress, setGlobalProgress] = React.useState(0);
+  const [globalEpoch, setGlobalEpoch] = React.useState(0);
+  const [globalLoss, setGlobalLoss] = React.useState(0);
+  const [downloading, setDownloading] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleLoadData = (sourceId: string) => {
+    setLoadingData(prev => ({ ...prev, [sourceId]: true }));
+    setTimeout(() => {
+      setLoadingData(prev => ({ ...prev, [sourceId]: false }));
+      setLoadedData(prev => ({ ...prev, [sourceId]: true }));
+    }, 1500);
+  };
+
+  const handleLoadAll = () => {
+    ontologySources.forEach((src, i) => {
+      setTimeout(() => handleLoadData(src.id), i * 500);
+    });
+  };
+
+  const handleUploadData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      Array.from(e.target.files).forEach(file => {
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        if (['ttl', 'owl', 'rdf', 'json', 'jsonld', 'csv'].includes(ext || '')) {
+          const customId = `custom-${Date.now()}`;
+          setLoadedData(prev => ({ ...prev, [customId]: true }));
+        }
+      });
+    }
+  };
+
+  const handleStartGlobalTraining = () => {
+    // 1. Load phase
+    setGlobalTraining('loading');
+    setGlobalProgress(0);
+    setGlobalEpoch(0);
+    setGlobalLoss(2.5);
+
+    setTimeout(() => {
+      // 2. Training phase
+      setGlobalTraining('training');
+      let epoch = 0;
+      let loss = 2.5;
+      const totalEpochs = 30;
+      const interval = setInterval(() => {
+        epoch++;
+        loss = Math.max(0.03, loss * (0.82 + Math.random() * 0.1));
+        const pct = Math.round((epoch / totalEpochs) * 100);
+        setGlobalEpoch(epoch);
+        setGlobalLoss(parseFloat(loss.toFixed(4)));
+        setGlobalProgress(pct);
+        if (epoch >= totalEpochs) {
+          clearInterval(interval);
+          setGlobalTraining('completed');
+          // Add new model
+          const ver = `v${(2.3 + trainedModels.length * 0.1).toFixed(1)}`;
+          setTrainedModels(prev => [{
+            id: `mdl-${Date.now()}`, name: `GovAI-sLLM-${ver}`,
+            size: `${(1.0 + Math.random() * 0.5).toFixed(1)} GB`,
+            accuracy: parseFloat((92 + Math.random() * 5).toFixed(1)),
+            date: new Date().toISOString().split('T')[0],
+            status: "active" as const,
+            sources: Object.keys(loadedData),
+            epochs: totalEpochs,
+            loss: parseFloat(loss.toFixed(4)),
+          }, ...prev]);
+        }
+      }, 400);
+    }, 2000);
+  };
+
+  const handleDownloadModel = (modelId: string) => {
+    setDownloading(modelId);
+    setTimeout(() => {
+      const model = trainedModels.find(m => m.id === modelId);
+      // Simulate download by creating a blob
+      const modelInfo = JSON.stringify({
+        model_name: model?.name,
+        version: model?.name.split('-').pop(),
+        accuracy: model?.accuracy,
+        epochs: model?.epochs,
+        loss: model?.loss,
+        trained_date: model?.date,
+        sources: model?.sources,
+        format: "ONNX + SafeTensors",
+        framework: "PyTorch",
+        note: "This is a simulated model file for demonstration purposes."
+      }, null, 2);
+      const blob = new Blob([modelInfo], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${model?.name || 'model'}-config.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setDownloading(null);
+    }, 1500);
+  };
+
+  const ontologySources = [
+    {
+      id: "dq", module: "데이터 품질 검증", icon: Database, color: "text-teal-600", bgColor: "bg-teal-100",
+      path: "/tech-review/data-quality",
+      ontologyClasses: ["DataQualityMetric", "AnomalyDetection", "BiasIndicator", "DataProfile", "QualityRule"],
+      triples: 342, lastSync: "2026-03-17 09:30",
+      trainingData: { total: 856, labeled: 812, quality: 97.8 },
+      description: "87개 품질 규칙, 이상탐지 결과, 편향 지표, 프로파일링 데이터를 온톨로지로 구조화",
+      sampleTriples: [
+        "ds:Transaction dq:completeness '99.95%'",
+        "ds:Customer dq:missingRate '1.0%'",
+        "ds:CreditRating dq:biasStatus 'balanced'",
+      ],
+    },
+    {
+      id: "mp", module: "모델 성능 평가", icon: BarChart3, color: "text-blue-600", bgColor: "bg-blue-100",
+      path: "/tech-review/model-performance",
+      ontologyClasses: ["ModelMetric", "PerformanceGoal", "ModelVersion", "MonitoringData", "PredictionLatency"],
+      triples: 285, lastSync: "2026-03-17 09:15",
+      trainingData: { total: 712, labeled: 698, quality: 96.5 },
+      description: "5개 모델의 성능 지표(정확도/F1/AUC), 목표 달성 현황, 실시간 모니터링 데이터",
+      sampleTriples: [
+        "model:CreditApproval perf:accuracy '94.5%'",
+        "model:FraudDetection perf:f1Score '98.65%'",
+        "model:ChurnPrediction perf:status 'testing'",
+      ],
+    },
+    {
+      id: "fr", module: "공정성 검증", icon: Shield, color: "text-green-600", bgColor: "bg-green-100",
+      path: "/tech-review/fairness",
+      ontologyClasses: ["FairnessMetric", "ProtectedAttribute", "BiasCheck", "DisparityIndex", "DemographicParity"],
+      triples: 198, lastSync: "2026-03-17 08:45",
+      trainingData: { total: 524, labeled: 510, quality: 95.2 },
+      description: "7개 집단의 편향 지표(DI/SPD/EOD), 인구통계 분석, 완화 조치 결과",
+      sampleTriples: [
+        "group:Male fairness:approvalRate '62.7%'",
+        "group:Female fairness:disparityIndex '0.925'",
+        "metric:DemographicParity fairness:value '0.94'",
+      ],
+    },
+    {
+      id: "xai", module: "신뢰성 평가", icon: Lightbulb, color: "text-amber-600", bgColor: "bg-amber-100",
+      path: "/tech-review/explainability",
+      ontologyClasses: ["TrustDimension", "TrustScore", "ExplainabilityMethod", "ComprehensionTest", "AccountabilityRecord"],
+      triples: 216, lastSync: "2026-03-17 10:00",
+      trainingData: { total: 648, labeled: 620, quality: 94.8 },
+      description: "6대 신뢰성 차원(정확성/설명가능성/공정성/견고성/투명성/책임성) 평가 결과",
+      sampleTriples: [
+        "trust:Accuracy score:value '93%'",
+        "trust:Explainability xai:method 'SHAP'",
+        "trust:Fairness score:grade 'B+'",
+      ],
+    },
+    {
+      id: "sec", module: "보안 검토", icon: Lock, color: "text-red-600", bgColor: "bg-red-100",
+      path: "/tech-review/security",
+      ontologyClasses: ["Vulnerability", "AdversarialTest", "AccessControl", "SecurityMetric", "ThreatModel"],
+      triples: 206, lastSync: "2026-03-17 08:00",
+      trainingData: { total: 501, labeled: 485, quality: 93.7 },
+      description: "5건 취약점, 적대적 공격 테스트(FGSM/PGD/C&W), 접근 제어 감사 결과",
+      sampleTriples: [
+        "vuln:CVE-2024-001 sec:severity 'high'",
+        "attack:FGSM sec:robustness '85%'",
+        "system:API sec:compliance '99.5%'",
+      ],
+    },
+  ];
+
+  const handleStartTraining = (sourceId: string) => {
+    setTrainingStatus(prev => ({ ...prev, [sourceId]: 'extracting' }));
+    setTrainingProgress(prev => ({ ...prev, [sourceId]: 0 }));
+
+    // Phase 1: Extracting ontology
+    setTimeout(() => {
+      setTrainingStatus(prev => ({ ...prev, [sourceId]: 'training' }));
+      setTrainingProgress(prev => ({ ...prev, [sourceId]: 30 }));
+
+      // Phase 2: Training progress
+      let progress = 30;
+      const interval = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          setTrainingStatus(prev => ({ ...prev, [sourceId]: 'completed' }));
+        }
+        setTrainingProgress(prev => ({ ...prev, [sourceId]: Math.min(progress, 100) }));
+      }, 600);
+    }, 1500);
+  };
+
+  const handleTrainAll = () => {
+    ontologySources.forEach((src, i) => {
+      setTimeout(() => handleStartTraining(src.id), i * 800);
+    });
+  };
+
+  const totalTriples = ontologySources.reduce((sum, s) => sum + s.triples, 0);
+  const totalTrainingData = ontologySources.reduce((sum, s) => sum + s.trainingData.total, 0);
+  const completedSources = Object.values(trainingStatus).filter(s => s === 'completed').length;
+
+  const loadedCount = Object.keys(loadedData).length;
+
+  return (
+    <div className="space-y-6">
+      {/* ─── Action Panel: 데이터 불러오기 → 학습 → 다운로드 ─── */}
+      <Card className="border-2 border-purple-200/60 bg-gradient-to-br from-purple-50/30 to-indigo-50/30">
+        <CardContent className="pt-5 pb-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Step 1: 데이터 불러오기 */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center text-sm font-black text-teal-700">1</div>
+                <h3 className="font-bold text-sm">데이터 불러오기</h3>
+              </div>
+
+              <Button className="w-full gap-2 bg-teal-600 hover:bg-teal-700" onClick={handleLoadAll} disabled={loadedCount === ontologySources.length}>
+                <Database className="w-4 h-4" />
+                {loadedCount === ontologySources.length ? '모든 데이터 로드 완료' : '기술 검토 데이터 전체 불러오기'}
+              </Button>
+
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => fileInputRef.current?.click()}>
+                  <Plus className="w-3 h-3" /> 파일 업로드
+                </Button>
+                <input ref={fileInputRef} type="file" className="hidden" multiple accept=".ttl,.owl,.rdf,.json,.jsonld,.csv" onChange={handleUploadData} />
+                <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs" onClick={() => { /* SPARQL endpoint */ }}>
+                  <Server className="w-3 h-3" /> SPARQL
+                </Button>
+              </div>
+
+              <div className="p-2.5 bg-white rounded-xl border space-y-1.5">
+                {ontologySources.map(src => {
+                  const SrcIcon = src.icon;
+                  const isLoaded = loadedData[src.id];
+                  const isLoading = loadingData[src.id];
+                  return (
+                    <div key={src.id} className="flex items-center justify-between py-1 group">
+                      <div className="flex items-center gap-2">
+                        <SrcIcon className={cn("w-3.5 h-3.5", isLoaded ? src.color : "text-gray-300")} />
+                        <span className={cn("text-xs", isLoaded ? "font-medium" : "text-muted-foreground")}>{src.module}</span>
+                      </div>
+                      {isLoading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-500" />
+                      ) : isLoaded ? (
+                        <div className="flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                          <span className="text-[9px] text-green-600">{src.triples}</span>
+                        </div>
+                      ) : (
+                        <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] opacity-0 group-hover:opacity-100" onClick={() => handleLoadData(src.id)}>불러오기</Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center">{loadedCount}/{ontologySources.length} 모듈 로드 ({totalTriples.toLocaleString()} 트리플)</p>
+            </div>
+
+            {/* Step 2: 학습 실행 */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-sm font-black text-purple-700">2</div>
+                <h3 className="font-bold text-sm">sLLM 학습 / 파인튜닝</h3>
+              </div>
+
+              <Button
+                className={cn("w-full gap-2 text-sm h-11",
+                  globalTraining === 'idle' ? "bg-purple-600 hover:bg-purple-700" :
+                  globalTraining === 'completed' ? "bg-green-600 hover:bg-green-700" : "bg-purple-600"
+                )}
+                onClick={handleStartGlobalTraining}
+                disabled={loadedCount === 0 || globalTraining === 'loading' || globalTraining === 'training'}
+              >
+                {globalTraining === 'idle' && <><Play className="w-5 h-5" />학습 시작</>}
+                {globalTraining === 'loading' && <><Loader2 className="w-5 h-5 animate-spin" />데이터 준비 중...</>}
+                {globalTraining === 'training' && <><Loader2 className="w-5 h-5 animate-spin" />학습 중... {globalProgress}%</>}
+                {globalTraining === 'completed' && <><CheckCircle2 className="w-5 h-5" />학습 완료 - 새 모델 생성됨</>}
+              </Button>
+
+              {/* Training Metrics */}
+              <div className="p-3 bg-white rounded-xl border space-y-3">
+                {globalTraining !== 'idle' && (
+                  <>
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">진행률</span>
+                        <span className="font-bold">{globalProgress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <motion.div className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500" animate={{ width: `${globalProgress}%` }} transition={{ duration: 0.3 }} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-1.5 bg-muted/30 rounded-lg">
+                        <p className="text-[9px] text-muted-foreground">에폭</p>
+                        <p className="text-sm font-bold text-purple-600">{globalEpoch}/30</p>
+                      </div>
+                      <div className="p-1.5 bg-muted/30 rounded-lg">
+                        <p className="text-[9px] text-muted-foreground">Loss</p>
+                        <p className="text-sm font-bold text-amber-600">{globalLoss}</p>
+                      </div>
+                      <div className="p-1.5 bg-muted/30 rounded-lg">
+                        <p className="text-[9px] text-muted-foreground">데이터</p>
+                        <p className="text-sm font-bold text-teal-600">{loadedCount * 680}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {globalTraining === 'idle' && (
+                  <div className="text-center py-4">
+                    <Brain className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground">데이터를 불러온 후<br/>학습을 시작하세요</p>
+                  </div>
+                )}
+              </div>
+              {loadedCount === 0 && globalTraining === 'idle' && (
+                <p className="text-[10px] text-amber-600 text-center flex items-center justify-center gap-1">
+                  <AlertTriangle className="w-3 h-3" /> 먼저 데이터를 불러와주세요
+                </p>
+              )}
+            </div>
+
+            {/* Step 3: 모델 다운로드 */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center text-sm font-black text-indigo-700">3</div>
+                <h3 className="font-bold text-sm">모델 다운로드</h3>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border space-y-2.5 max-h-[320px] overflow-y-auto">
+                {trainedModels.map(model => (
+                  <div key={model.id} className={cn("p-3 rounded-xl border transition-all hover:shadow-md",
+                    model.status === 'active' ? "border-green-200 bg-green-50/30" : "border-gray-200 bg-gray-50/30"
+                  )}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-bold">{model.name}</p>
+                          {model.status === 'active' && <Badge className="bg-green-100 text-green-700 text-[8px] px-1 py-0">Active</Badge>}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{model.date} | {model.size} | {model.epochs} epochs</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5 mb-2">
+                      <div className="text-center p-1 bg-white rounded border">
+                        <p className="text-[8px] text-muted-foreground">정확도</p>
+                        <p className={cn("text-xs font-bold", model.accuracy >= 93 ? "text-green-600" : "text-amber-600")}>{model.accuracy}%</p>
+                      </div>
+                      <div className="text-center p-1 bg-white rounded border">
+                        <p className="text-[8px] text-muted-foreground">Loss</p>
+                        <p className="text-xs font-bold text-purple-600">{model.loss}</p>
+                      </div>
+                      <div className="text-center p-1 bg-white rounded border">
+                        <p className="text-[8px] text-muted-foreground">소스</p>
+                        <p className="text-xs font-bold text-blue-600">{model.sources.length}개</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button size="sm" variant="outline" className="flex-1 gap-1 text-[10px] h-7"
+                        onClick={() => handleDownloadModel(model.id)} disabled={downloading === model.id}>
+                        {downloading === model.id ? <><Loader2 className="w-3 h-3 animate-spin" />준비중</> : <><Save className="w-3 h-3" />ONNX 다운로드</>}
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1 gap-1 text-[10px] h-7"
+                        onClick={() => handleDownloadModel(model.id)} disabled={downloading === model.id}>
+                        {downloading === model.id ? <><Loader2 className="w-3 h-3 animate-spin" /></> : <><Save className="w-3 h-3" />SafeTensors</>}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {trainedModels.length === 0 && (
+                  <div className="text-center py-6">
+                    <Cpu className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground">학습된 모델이 없습니다</p>
+                  </div>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center">ONNX, SafeTensors, PyTorch (.pt) 형식 지원</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Source Cards */}
+      <div className="space-y-4">
+        {ontologySources.map((source, idx) => {
+          const SrcIcon = source.icon;
+          const status = trainingStatus[source.id] || 'idle';
+          const progress = trainingProgress[source.id] || 0;
+
+          return (
+            <motion.div key={source.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}>
+              <Card className={cn("overflow-hidden transition-all",
+                status === 'training' && "ring-2 ring-purple-300 shadow-lg",
+                status === 'completed' && "ring-1 ring-green-300"
+              )}>
+                <div className="p-5">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", source.bgColor)}>
+                        <SrcIcon className={cn("w-5 h-5", source.color)} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-sm">{source.module}</h3>
+                          <Badge variant="outline" className="text-[9px] cursor-pointer hover:bg-muted" onClick={() => window.location.href = source.path}>
+                            바로가기 →
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[9px] text-green-600 font-medium">LIVE</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{source.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant={status === 'completed' ? 'outline' : 'default'}
+                        className={cn("gap-1.5 text-xs", status === 'idle' && "bg-purple-600 hover:bg-purple-700")}
+                        onClick={() => handleStartTraining(source.id)}
+                        disabled={status === 'extracting' || status === 'training'}>
+                        {status === 'idle' && <><Play className="w-3 h-3" />학습 시작</>}
+                        {status === 'extracting' && <><Loader2 className="w-3 h-3 animate-spin" />온톨로지 추출 중...</>}
+                        {status === 'training' && <><Loader2 className="w-3 h-3 animate-spin" />학습 중 {Math.round(progress)}%</>}
+                        {status === 'completed' && <><CheckCircle2 className="w-3 h-3 text-green-500" />완료</>}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  {(status === 'extracting' || status === 'training') && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">{status === 'extracting' ? '온톨로지 추출 중...' : 'sLLM 학습 진행 중...'}</span>
+                        <span className="font-medium">{Math.round(progress)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <motion.div
+                          className={cn("h-full rounded-full", status === 'extracting' ? "bg-amber-500" : "bg-purple-500")}
+                          animate={{ width: `${progress}%` }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Content Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Ontology Classes */}
+                    <div className="p-3 rounded-xl bg-muted/30 border">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <BookOpen className="w-3 h-3" /> 온톨로지 클래스
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {source.ontologyClasses.map(cls => (
+                          <Badge key={cls} variant="outline" className="text-[9px] bg-white/50 font-mono">{cls}</Badge>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                        <span className="font-medium">{source.triples} 트리플</span>
+                        <span>동기화: {source.lastSync}</span>
+                      </div>
+                    </div>
+
+                    {/* Sample Triples */}
+                    <div className="p-3 rounded-xl bg-muted/30 border">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <FileText className="w-3 h-3" /> 샘플 트리플 (RDF)
+                      </p>
+                      <div className="space-y-1">
+                        {source.sampleTriples.map((triple, i) => (
+                          <code key={i} className="block text-[9px] font-mono text-purple-700 bg-purple-50/50 px-2 py-1 rounded">{triple}</code>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Training Data Stats */}
+                    <div className="p-3 rounded-xl bg-muted/30 border">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <Brain className="w-3 h-3" /> 학습 데이터
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">전체</span>
+                          <span className="font-bold">{source.trainingData.total.toLocaleString()}건</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">레이블링</span>
+                          <span className="font-bold">{source.trainingData.labeled.toLocaleString()}건</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">품질 점수</span>
+                          <span className={cn("font-bold", source.trainingData.quality >= 95 ? "text-green-600" : "text-amber-600")}>
+                            {source.trainingData.quality}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                            style={{ width: `${(source.trainingData.labeled / source.trainingData.total) * 100}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Completed Badge */}
+                  {status === 'completed' && (
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="mt-3 p-2.5 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                      <p className="text-xs text-green-700">
+                        <span className="font-semibold">{source.module}</span> 온톨로지 {source.triples}개 트리플 추출 → {source.trainingData.labeled}건 학습 데이터 변환 → sLLM 파인튜닝 완료
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Integration Architecture */}
+      <Card className="bg-gradient-to-br from-slate-50 to-gray-50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2"><Layers className="w-4 h-4 text-indigo-600" /> 온톨로지 → sLLM 학습 아키텍처</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {[
+              { step: "1. 데이터 수집", icon: Database, desc: "5개 기술 검토 모듈에서 검증/평가 결과를 실시간 수집", color: "text-teal-600", bg: "bg-teal-100" },
+              { step: "2. 온톨로지 변환", icon: BookOpen, desc: "RDF/OWL 기반 구조화 → 클래스/속성/관계 매핑", color: "text-amber-600", bg: "bg-amber-100" },
+              { step: "3. 학습 데이터 생성", icon: FileText, desc: "Q&A 쌍, 분류 라벨, 규정 매핑 데이터 자동 생성", color: "text-blue-600", bg: "bg-blue-100" },
+              { step: "4. sLLM 파인튜닝", icon: Brain, desc: "거버넌스 도메인 특화 LLM 파인튜닝 실행", color: "text-purple-600", bg: "bg-purple-100" },
+            ].map((item, i) => {
+              const ItemIcon = item.icon;
+              return (
+                <div key={i} className="p-4 bg-white rounded-xl border relative">
+                  <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center mb-2", item.bg)}>
+                    <ItemIcon className={cn("w-4 h-4", item.color)} />
+                  </div>
+                  <h4 className="font-semibold text-xs mb-1">{item.step}</h4>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">{item.desc}</p>
+                  {i < 3 && <ArrowRight className="hidden md:block absolute -right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 z-10" />}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 // =============================================
 // 총괄현황 & 서비스 구축 플로우 탭
@@ -872,30 +1441,192 @@ const SLLMStudio: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Stats */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"
-        >
-          {[
-            { title: t('sllm.stat.templates'), value: stats.templates || 0, change: '+0', trend: 'up' as const },
-            { title: t('sllm.stat.datasets'), value: stats.datasets || 0, change: '+0', trend: 'up' as const },
-            { title: t('sllm.stat.totalJobs'), value: stats.totalJobs || 0, change: '+0', trend: 'up' as const },
-            { title: t('sllm.stat.sectors'), value: 4, change: t('sllm.stat.energyFinance'), trend: 'up' as const },
-            { title: t('sllm.stat.rmfQuestions'), value: 32, change: t('sllm.stat.fullScore'), trend: 'up' as const },
-            { title: t('sllm.stat.riskItems'), value: 13, change: t('sllm.stat.riskRange'), trend: 'up' as const },
-          ].map((m, i) => (
-            <motion.div key={i} variants={staggerItem}>
-              <MetricCard title={m.title} value={m.value} change={m.change} trend={m.trend} />
-            </motion.div>
-          ))}
+        {/* ─── Solution Banner (보안 검토 스타일 통일) ─── */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card className="bg-gradient-to-r from-slate-800 via-gray-900 to-slate-900 border-0 text-white">
+            <CardContent className="py-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold">sLLM 파인튜닝 스튜디오</h3>
+                  <p className="text-sm text-white/60 mt-0.5">기술 검토 온톨로지 기반 거버넌스 특화 LLM 학습 · 훈련 · 배포</p>
+                </div>
+                <div className="flex gap-3">
+                  <Button className="bg-purple-500/20 border-purple-400/30 text-purple-300 hover:bg-purple-500/30 gap-2 border">
+                    <Database className="w-4 h-4" /> 데이터셋 연동
+                  </Button>
+                  <Button className="bg-white text-gray-900 hover:bg-white/90 gap-2 font-semibold">
+                    <Zap className="w-4 h-4" /> 파인튜닝 시작
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
+
+        {/* ─── Key Metrics (보안 검토 MetricCard 스타일) ─── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard title="연동 데이터셋" value="4/5" change="+1" trend="up" />
+          <MetricCard title="온톨로지 트리플" value="1,247" change="+142" trend="up" />
+          <MetricCard title="학습 데이터" value="3,841건" change="+320" trend="up" />
+          <MetricCard title="모델 정확도" value="94.2%" change="+2.4%" trend="up" />
+        </div>
+
+        {/* ─── 데이터셋 연동 현황 (취약점 알림 스타일) ─── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">파인튜닝 데이터셋 연동</CardTitle>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="text-xs gap-1.5"><Plus className="w-3 h-3" /> 파일 업로드</Button>
+                <Button variant="outline" size="sm" className="text-xs gap-1.5"><Database className="w-3 h-3" /> SPARQL</Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2.5 px-3 font-semibold text-xs">소스 모듈</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">트리플</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">학습 데이터</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">품질</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">동기화</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { module: "데이터 품질 검증", triples: 342, data: 856, quality: 97.8, sync: "09:30", connected: true },
+                    { module: "모델 성능 평가", triples: 285, data: 712, quality: 96.5, sync: "09:15", connected: true },
+                    { module: "공정성 검증", triples: 198, data: 524, quality: 95.2, sync: "08:45", connected: true },
+                    { module: "신뢰성 평가", triples: 216, data: 648, quality: 94.8, sync: "-", connected: false },
+                    { module: "보안 검토", triples: 206, data: 501, quality: 93.7, sync: "08:00", connected: true },
+                  ].map((row) => (
+                    <tr key={row.module} className="border-b hover:bg-muted/30">
+                      <td className="py-2.5 px-3 font-medium text-xs">{row.module}</td>
+                      <td className="text-center py-2.5 px-3 text-xs">{row.triples}</td>
+                      <td className="text-center py-2.5 px-3 text-xs">{row.data.toLocaleString()}건</td>
+                      <td className="text-center py-2.5 px-3">
+                        <Badge variant="outline" className={cn("text-[10px]", row.quality >= 95 ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
+                          {row.quality}%
+                        </Badge>
+                      </td>
+                      <td className="text-center py-2.5 px-3 text-xs text-muted-foreground">{row.sync}</td>
+                      <td className="text-center py-2.5 px-3">
+                        {row.connected ? (
+                          <Badge className="bg-green-600 text-[10px]">연동</Badge>
+                        ) : (
+                          <Button variant="outline" size="sm" className="h-6 px-2 text-[9px]">연결</Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ─── 학습된 모델 (다운로드) ─── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">학습된 모델</CardTitle>
+              <Badge variant="outline" className="text-xs">ONNX · SafeTensors · PyTorch 지원</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2.5 px-3 font-semibold text-xs">모델명</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">정확도</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">Loss</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">크기</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">학습일</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">상태</th>
+                    <th className="text-center py-2.5 px-3 font-semibold text-xs">다운로드</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { name: "GovAI-sLLM-v2.3", acc: 94.2, loss: 0.042, size: "1.2 GB", date: "2026-03-15", active: true, epochs: 30, sources: 4 },
+                    { name: "GovAI-sLLM-v2.2", acc: 91.8, loss: 0.058, size: "1.1 GB", date: "2026-03-01", active: false, epochs: 25, sources: 3 },
+                    { name: "GovAI-sLLM-v2.1", acc: 89.5, loss: 0.073, size: "1.0 GB", date: "2026-02-15", active: false, epochs: 20, sources: 2 },
+                  ].map((model) => {
+                    const downloadModel = (format: string) => {
+                      const config = JSON.stringify({
+                        model_id: model.name,
+                        format,
+                        accuracy: model.acc,
+                        loss: model.loss,
+                        epochs: model.epochs,
+                        trained_date: model.date,
+                        data_sources: model.sources,
+                        base_model: "Llama-3-8B",
+                        framework: "PyTorch",
+                        license: "Apache-2.0",
+                        description: `AI 거버넌스 특화 sLLM - ${model.sources}개 기술 검토 모듈 온톨로지 기반 파인튜닝`,
+                      }, null, 2);
+                      const blob = new Blob([config], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${model.name}.${format === 'ONNX' ? 'onnx' : format === 'SafeTensors' ? 'safetensors' : 'pt'}.config.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      toast.success(`${model.name} (${format}) 다운로드를 시작합니다.`);
+                    };
+                    return (
+                      <tr key={model.name} className={cn("border-b hover:bg-muted/30", model.active && "bg-green-50/30")}>
+                        <td className="py-2.5 px-3">
+                          <span className="font-medium text-xs">{model.name}</span>
+                        </td>
+                        <td className="text-center py-2.5 px-3">
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px]">{model.acc}%</Badge>
+                        </td>
+                        <td className="text-center py-2.5 px-3 text-xs font-medium">{model.loss}</td>
+                        <td className="text-center py-2.5 px-3 text-xs text-muted-foreground">{model.size}</td>
+                        <td className="text-center py-2.5 px-3 text-xs text-muted-foreground">{model.date}</td>
+                        <td className="text-center py-2.5 px-3">
+                          {model.active ? (
+                            <Badge className="bg-green-600 text-[10px]">Active</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] text-muted-foreground">Archived</Badge>
+                          )}
+                        </td>
+                        <td className="text-center py-2.5 px-3">
+                          <div className="flex gap-1 justify-center">
+                            <Button variant="outline" size="sm" className="h-6 px-2 text-[9px] gap-1" onClick={() => downloadModel('ONNX')}>
+                              <Save className="w-2.5 h-2.5" /> ONNX
+                            </Button>
+                            <Button variant="outline" size="sm" className="h-6 px-2 text-[9px] gap-1" onClick={() => downloadModel('SafeTensors')}>
+                              <Save className="w-2.5 h-2.5" /> .safetensors
+                            </Button>
+                            <Button variant="outline" size="sm" className="h-6 px-2 text-[9px] gap-1" onClick={() => downloadModel('PyTorch')}>
+                              <Save className="w-2.5 h-2.5" /> .pt
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="bg-muted/50 flex-wrap h-auto gap-1 p-1">
+            <TabsTrigger value="ontology-training" className="data-[state=active]:bg-background gap-1.5 text-xs data-[state=active]:ring-2 data-[state=active]:ring-purple-300">
+              <GitMerge className="h-3.5 w-3.5" /> 온톨로지 학습
+            </TabsTrigger>
             <TabsTrigger value="overview" className="data-[state=active]:bg-background gap-1.5 text-xs">
               <Activity className="h-3.5 w-3.5" /> {t('sllm.overview')}
             </TabsTrigger>
@@ -918,6 +1649,10 @@ const SLLMStudio: React.FC = () => {
               <Zap className="h-3.5 w-3.5" /> {t('sllm.fineTuning')}
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="ontology-training" className="mt-6">
+            <OntologyTrainingTab />
+          </TabsContent>
 
           <TabsContent value="overview" className="mt-6">
             <GovernanceOverview activeSector={activeSector} setActiveSector={setActiveSector} SECTORS={SECTORS} PROCESS_STEPS={PROCESS_STEPS} RMF_PRINCIPLES={RMF_PRINCIPLES} PHASE_COLORS={PHASE_COLORS} />
